@@ -8,7 +8,7 @@ class ReviewManagerTestable: ReviewManager {
   /// How many times ``waitAndAskForReview`` was called
   var reviewsAskedFor: Int = 0
 
-  /// Editable app vresion
+  /// Editable app version
   var appVersion: String = "1.0"
 
   override func getCurrentAppVersion() -> String? {
@@ -44,7 +44,7 @@ final class ReviewManagerTests: XCTestCase {
     XCTAssertTrue(reviewManager.initialReviewThreshold > 1, "Should ask for a review at least once")
     XCTAssertTrue(
       reviewManager.followUpReviewThreshold > reviewManager.initialReviewThreshold,
-      "Follow up should be greater than the intial threshold")
+      "Follow up should be greater than the initial threshold")
 
     for _ in 1...reviewManager.initialReviewThreshold {
       XCTAssertTrue(reviewManager.reviewsAskedFor == 0, "Should not have asked yet")

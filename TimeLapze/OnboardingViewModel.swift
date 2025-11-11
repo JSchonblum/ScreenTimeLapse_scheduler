@@ -52,7 +52,7 @@ class OnboardingViewModel: ObservableObject {
 
   // MARK: HELPERS
 
-  /// Programatically opens the ``MenuBarExtra`` for more interactive onboarding
+  /// Programmatically opens the ``MenuBarExtra`` for more interactive onboarding
   func openMenuBar() {
     let windows = NSApp.windows
 

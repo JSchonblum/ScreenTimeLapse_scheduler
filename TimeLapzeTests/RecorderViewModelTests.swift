@@ -55,7 +55,7 @@ final class RecorderViewModelTests: XCTestCase {
     }
   }
 
-  /// Tests a helper made for URLs to check if they were generated in a temporay folder
+  /// Tests a helper made for URLs to check if they were generated in a temporary folder
   func testIsInTemporaryFolder() throws {
     let temporaryURL = URL(
       filePath: "test.txt", directoryHint: .notDirectory, relativeTo: .temporaryDirectory)

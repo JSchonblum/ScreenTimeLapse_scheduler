@@ -15,7 +15,7 @@ class RecorderViewModel: ObservableObject {
   @Published var state: RecordingState = .stopped
   @AppStorage("showCursor") var showCursor: Bool = false
 
-  /// Timer which allows for asyncronous refreshing of enabled displays
+  /// Timer which allows for asynchronous refreshing of enabled displays
   private var timer: DispatchSourceTimer?
 
   /// Makes an asynchronous call to `ScreenCaptureKit` to get valid `SCScreens` and `SCRunningApplication`s connected to the computer

@@ -146,7 +146,7 @@ struct InputDevices: View {
       }
   }
 
-  /// Renders all avaible `Camera` objects as an interactable list
+  /// Renders all available `Camera` objects as an interactable list
   func camerasMenu() -> some View {
     viewModel.cameras.isEmpty
       ? nil

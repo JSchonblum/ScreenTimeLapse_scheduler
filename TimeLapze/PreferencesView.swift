@@ -173,7 +173,8 @@ struct PreferencesView: View {
     return Button(label) {
       preferencesViewModel.scheduleDaysMask ^= (1 << index)
     }
-    .buttonStyle(isOn ? .borderedProminent : .bordered)
+    .buttonStyle(.bordered)
+    .tint(isOn ? Color.accentColor : Color.secondary)
   }
 
   @ViewBuilder

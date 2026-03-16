@@ -156,12 +156,13 @@ struct PreferencesView: View {
   }
 
   func dayPicker() -> some View {
-    let dayLabels = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
-    let mask = preferencesViewModel.scheduleDaysMask
+    let dayLabels: [String] = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
+    let indices: [Int] = [0, 1, 2, 3, 4, 5, 6]
+    let mask: Int = preferencesViewModel.scheduleDaysMask
     return HStack {
       Text("Days:")
-      ForEach(Array(0..<7), id: \.self) { i in
-        let isOn = (mask >> i) & 1 != 0
+      ForEach(indices, id: \.self) { i in
+        let isOn: Bool = (mask & (1 << i)) != 0
         Button(dayLabels[i]) {
           preferencesViewModel.scheduleDaysMask ^= (1 << i)
         }

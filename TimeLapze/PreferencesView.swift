@@ -156,26 +156,24 @@ struct PreferencesView: View {
   }
 
   func dayPicker() -> some View {
-    struct Day: Identifiable {
-      let id: Int
-      let label: String
-    }
-    let days = [
-      Day(id: 0, label: "Su"), Day(id: 1, label: "Mo"), Day(id: 2, label: "Tu"),
-      Day(id: 3, label: "We"), Day(id: 4, label: "Th"), Day(id: 5, label: "Fr"),
-      Day(id: 6, label: "Sa"),
-    ]
-    let mask: Int = preferencesViewModel.scheduleDaysMask
-    return HStack {
+    HStack {
       Text("Days:")
-      ForEach(days) { day in
-        let isOn: Bool = (mask & (1 << day.id)) != 0
-        Button(day.label) {
-          preferencesViewModel.scheduleDaysMask ^= (1 << day.id)
-        }
-        .buttonStyle(isOn ? .borderedProminent : .bordered)
-      }
+      dayButton(0, "Su")
+      dayButton(1, "Mo")
+      dayButton(2, "Tu")
+      dayButton(3, "We")
+      dayButton(4, "Th")
+      dayButton(5, "Fr")
+      dayButton(6, "Sa")
     }
+  }
+
+  func dayButton(_ index: Int, _ label: String) -> some View {
+    let isOn = (preferencesViewModel.scheduleDaysMask & (1 << index)) != 0
+    return Button(label) {
+      preferencesViewModel.scheduleDaysMask ^= (1 << index)
+    }
+    .buttonStyle(isOn ? .borderedProminent : .bordered)
   }
 
   @ViewBuilder

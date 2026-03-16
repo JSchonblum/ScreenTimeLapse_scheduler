@@ -33,6 +33,10 @@ struct PreferencesView: View {
       Spacer()
 
       uiSettings()
+
+      Divider()
+
+      scheduleSettings()
     }
     .padding(30)
   }
@@ -117,6 +121,46 @@ struct PreferencesView: View {
     Picker("Format", selection: $preferencesViewModel.format) {
       ForEach(baseConfig.validFormats, id: \.self) { format in
         Text(baseConfig.convertFormatToString(format))
+      }
+    }
+  }
+
+  @ViewBuilder
+  func scheduleSettings() -> some View {
+    Text("Recording Schedule")
+      .fontWeight(.medium)
+
+    Toggle("Enable scheduled recording", isOn: $preferencesViewModel.scheduleEnabled)
+
+    if preferencesViewModel.scheduleEnabled {
+      DatePicker(
+        "Start",
+        selection: Binding(
+          get: { preferencesViewModel.scheduleStartTime },
+          set: { preferencesViewModel.scheduleStartTime = $0 }
+        ),
+        displayedComponents: .hourAndMinute
+      )
+
+      DatePicker(
+        "Stop",
+        selection: Binding(
+          get: { preferencesViewModel.scheduleStopTime },
+          set: { preferencesViewModel.scheduleStopTime = $0 }
+        ),
+        displayedComponents: .hourAndMinute
+      )
+
+      HStack {
+        Text("Days:")
+        let dayLabels = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
+        ForEach(0..<7, id: \.self) { i in
+          let isOn = preferencesViewModel.scheduleDaysMask & (1 << i) != 0
+          Button(dayLabels[i]) {
+            preferencesViewModel.scheduleDaysMask ^= (1 << i)
+          }
+          .buttonStyle(isOn ? .borderedProminent : .bordered)
+        }
       }
     }
   }

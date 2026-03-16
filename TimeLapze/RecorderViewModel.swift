@@ -19,6 +19,9 @@ class RecorderViewModel: ObservableObject {
   /// Timer which allows for asynchronous refreshing of enabled displays
   private var timer: DispatchSourceTimer?
 
+  /// Timer which checks the recording schedule every minute
+  private var scheduleTimer: DispatchSourceTimer?
+
   /// Checks screen recording permission using the lightweight preflight API
   @discardableResult
   func checkScreenPermission() -> Bool {
@@ -55,6 +58,7 @@ class RecorderViewModel: ObservableObject {
     hasScreenPermission = CGPreflightScreenCaptureAccess()
     getCameras()
     startRefreshingDevices()
+    startScheduler()
     setupCameraMonitoring()
     Task(priority: .userInitiated) {
       await getDisplayInfo()
@@ -63,6 +67,7 @@ class RecorderViewModel: ObservableObject {
 
   deinit {
     cleanUpMonitoring()
+    scheduleTimer?.cancel()
   }
 
   // MARK: Monitoring Recording Changes
@@ -144,6 +149,52 @@ class RecorderViewModel: ObservableObject {
       }
     }
     timer.resume()
+  }
+
+  // MARK: Schedule
+
+  /// Starts a timer that checks the recording schedule once per minute
+  func startScheduler() {
+    scheduleTimer = DispatchSource.makeTimerSource(queue: DispatchQueue.global())
+    guard let scheduleTimer = scheduleTimer else { return }
+
+    // Fire 60s after launch (not immediately), then every 60s
+    scheduleTimer.schedule(deadline: .now() + 60, repeating: .seconds(60))
+    scheduleTimer.setEventHandler { [weak self] in self?.checkSchedule() }
+    scheduleTimer.resume()
+  }
+
+  /// Called every minute — starts or stops recording based on the configured schedule
+  func checkSchedule() {
+    guard UserDefaults.standard.bool(forKey: "scheduleEnabled") else { return }
+
+    let now = Date()
+    let calendar = Calendar.current
+
+    // weekday: 1 = Sunday … 7 = Saturday  →  bit position = weekday - 1
+    let weekday = calendar.component(.weekday, from: now)
+    let dayBit = 1 << (weekday - 1)
+    let daysMask = UserDefaults.standard.object(forKey: "scheduleDaysMask") as? Int ?? 62
+    guard daysMask & dayBit != 0 else { return }
+
+    let midnight = calendar.startOfDay(for: now)
+    let currentSeconds = now.timeIntervalSince(midnight)
+
+    let rawStart = UserDefaults.standard.double(forKey: "scheduleStartSeconds")
+    let rawStop = UserDefaults.standard.double(forKey: "scheduleStopSeconds")
+    let startSeconds = rawStart == 0 ? 36_000.0 : rawStart
+    let stopSeconds = rawStop == 0 ? 64_800.0 : rawStop
+
+    let inWindow = currentSeconds >= startSeconds && currentSeconds < stopSeconds
+
+    DispatchQueue.main.async { [weak self] in
+      guard let self = self else { return }
+      if inWindow && self.state == .stopped {
+        self.startRecording()
+      } else if !inWindow && self.state != .stopped {
+        self.saveRecordings()
+      }
+    }
   }
 
   /// Gets all cameras attached to the computer and creates ``MyRecordingCamera``s for them

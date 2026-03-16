@@ -23,6 +23,24 @@ class PreferencesViewModel: ObservableObject {
   @Published var fpsDropdown = 4
   @Published var fpsInput = ""
 
+  // MARK: Schedule
+  @AppStorage("scheduleEnabled") var scheduleEnabled: Bool = false
+  @AppStorage("scheduleStartSeconds") var scheduleStartSeconds: Double = 36_000  // 10:00 AM
+  @AppStorage("scheduleStopSeconds") var scheduleStopSeconds: Double = 64_800   // 6:00 PM
+  @AppStorage("scheduleDaysMask") var scheduleDaysMask: Int = 62                // Mon–Fri (bits 1–5)
+
+  /// Date representation of start time, for use with DatePicker
+  var scheduleStartTime: Date {
+    get { Calendar.current.startOfDay(for: Date()).addingTimeInterval(scheduleStartSeconds) }
+    set { scheduleStartSeconds = newValue.timeIntervalSince(Calendar.current.startOfDay(for: newValue)) }
+  }
+
+  /// Date representation of stop time, for use with DatePicker
+  var scheduleStopTime: Date {
+    get { Calendar.current.startOfDay(for: Date()).addingTimeInterval(scheduleStopSeconds) }
+    set { scheduleStopSeconds = newValue.timeIntervalSince(Calendar.current.startOfDay(for: newValue)) }
+  }
+
   @Environment(\.openURL) var openURL
 
   // MARK: Intents

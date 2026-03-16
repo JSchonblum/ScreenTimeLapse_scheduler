@@ -11,6 +11,8 @@ struct ContentView: View {
   var body: some View {
     ActionButton()
     Divider()
+    ScheduleMenu()
+    Divider()
     InputDevices()
     Divider()
     Info()
@@ -68,6 +70,29 @@ struct ActionButton: View {
       viewModel.stopRecording()
     }
     .keyboardShortcut("S")
+  }
+}
+
+/// Menu bar entry for toggling the recording schedule on/off
+struct ScheduleMenu: View {
+  @AppStorage("scheduleEnabled") private var scheduleEnabled = false
+  @AppStorage("scheduleStartSeconds") private var startSeconds: Double = 36_000
+  @AppStorage("scheduleStopSeconds") private var stopSeconds: Double = 64_800
+
+  var body: some View {
+    Section("Schedule") {
+      Button(action: { scheduleEnabled.toggle() }) {
+        if scheduleEnabled { Image(systemName: "checkmark") }
+        Text("Auto-record \(formattedTime(startSeconds)) – \(formattedTime(stopSeconds))")
+      }
+    }
+  }
+
+  private func formattedTime(_ secondsSinceMidnight: Double) -> String {
+    let date = Calendar.current.startOfDay(for: Date()).addingTimeInterval(secondsSinceMidnight)
+    let f = DateFormatter()
+    f.timeStyle = .short
+    return f.string(from: date)
   }
 }
 

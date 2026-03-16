@@ -151,9 +151,7 @@ class Screen: NSObject, SCStreamOutput, Recordable {
     // uses a settings recommender to get the video settings
     let settingsAssistant = AVOutputSettingsAssistant(preset: config.preset)!
 
-    let pixelRatio = getPixelRatio(for: screen.displayID) ?? 1.0
-    let width = Int(CGFloat(screen.width) * pixelRatio)
-    let height = Int(CGFloat(screen.height) * pixelRatio)
+    let (width, height) = computeOutputDimensions(for: screen)
 
     settingsAssistant.sourceVideoFormat = try CMVideoFormatDescription(
       videoCodecType: .hevc, width: width, height: height)
@@ -201,19 +199,15 @@ class Screen: NSObject, SCStreamOutput, Recordable {
       exceptingWindows: []
     )
 
-    let pixelPointScale = Int(contentFilter.pointPixelScale)
-
     let config = SCStreamConfiguration()
     config.queueDepth = 20
     config.showsCursor = showCursor
     config.capturesAudio = false
     config.backgroundColor = .white
 
-    // Set the width to twice the stated width (required for pixel ratio reasons)
-    // required to get colors to look right
-    // note: in the future, this **should not** be hard-coded
-    config.width = screen.width * pixelPointScale
-    config.height = screen.height * pixelPointScale
+    let (outputWidth, outputHeight) = computeOutputDimensions(for: screen)
+    config.width = outputWidth
+    config.height = outputHeight
 
     // color settings
     // note: in display settings, you can set the color space. So, this should probably not be hard-coded either
@@ -346,4 +340,28 @@ func getPixelRatio(for displayID: CGDirectDisplayID) -> CGFloat? {
   }
 
   return screens.backingScaleFactor
+}
+
+/// Computes the output pixel dimensions for a display, capped at 1920px wide while preserving
+/// the screen's native aspect ratio. If the display is already narrower than 1920px, native
+/// dimensions are returned unchanged.
+///
+/// Both width and height are guaranteed to be even numbers (required by most video codecs).
+func computeOutputDimensions(for screen: SCDisplay) -> (width: Int, height: Int) {
+  let pixelRatio = getPixelRatio(for: screen.displayID) ?? 1.0
+  let physicalWidth = Int(CGFloat(screen.width) * pixelRatio)
+  let physicalHeight = Int(CGFloat(screen.height) * pixelRatio)
+
+  let maxWidth = 1920
+  guard physicalWidth > maxWidth else {
+    // Already within target — return native, rounded to even
+    let w = physicalWidth % 2 == 0 ? physicalWidth : physicalWidth + 1
+    let h = physicalHeight % 2 == 0 ? physicalHeight : physicalHeight + 1
+    return (w, h)
+  }
+
+  let scale = CGFloat(maxWidth) / CGFloat(physicalWidth)
+  let scaledHeight = Int(CGFloat(physicalHeight) * scale)
+  let evenHeight = scaledHeight % 2 == 0 ? scaledHeight : scaledHeight + 1
+  return (maxWidth, evenHeight)
 }

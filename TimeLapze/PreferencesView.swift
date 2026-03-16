@@ -151,16 +151,21 @@ struct PreferencesView: View {
         displayedComponents: .hourAndMinute
       )
 
-      HStack {
-        Text("Days:")
-        let dayLabels = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
-        ForEach(0..<7, id: \.self) { i in
-          let isOn = preferencesViewModel.scheduleDaysMask & (1 << i) != 0
-          Button(dayLabels[i]) {
-            preferencesViewModel.scheduleDaysMask ^= (1 << i)
-          }
-          .buttonStyle(isOn ? .borderedProminent : .bordered)
+      dayPicker()
+    }
+  }
+
+  func dayPicker() -> some View {
+    let dayLabels = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
+    let mask = preferencesViewModel.scheduleDaysMask
+    return HStack {
+      Text("Days:")
+      ForEach(Array(0..<7), id: \.self) { i in
+        let isOn = (mask >> i) & 1 != 0
+        Button(dayLabels[i]) {
+          preferencesViewModel.scheduleDaysMask ^= (1 << i)
         }
+        .buttonStyle(isOn ? .borderedProminent : .bordered)
       }
     }
   }
